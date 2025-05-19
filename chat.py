@@ -19,5 +19,5 @@ def ask_question_with_retriever(query, retriever):
     return response.content
 
 def ask_question_direct(query):
-    response = llm.invoke(prompt)
+    response = llm.invoke(query)
     return response.content
