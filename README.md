@@ -1,4 +1,9 @@
-TO INSTALL DEPENDENCY:
+DEPENDENCIES:
+Tesseract: https://github.com/tesseract-ocr/tesseract?tab=readme-ov-file#installing-tesseract
+poppler: https://github.com/oschwartz10612/poppler-windows/releases/
+Add Tesseract-OCR folder and bin folder of poppler to PATH in Environment Variable
+
+TO INSTALL REQUIRED LIBRARY:
                           pip install -r requirement.txt
 TO RUN: 
 1. Add/remove .pdf file in docs folder
