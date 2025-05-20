@@ -4,7 +4,20 @@ import logging
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
+# Thêm import cho OCR
+import pytesseract
+from pdf2image import convert_from_path
+from PIL import Image
+
 logging.getLogger("pdfminer").setLevel(logging.ERROR)
+
+def ocr_pdf_page(pdf_path, page_number):
+    """Chuyển trang PDF thành ảnh và nhận diện chữ bằng OCR."""
+    images = convert_from_path(pdf_path, first_page=page_number+1, last_page=page_number+1)
+    if images:
+        text = pytesseract.image_to_string(images[0], lang='eng+vie')
+        return text
+    return ""
 
 def load_and_split_documents(folder_path):
     documents = []
@@ -18,10 +31,16 @@ def load_and_split_documents(folder_path):
             try:
                 with pdfplumber.open(file_path) as pdf:
                     full_text = ""
-                    for page in pdf.pages:
-                        text = page.extract_text()
-                        if text:
-                            full_text += text + "\n"
+                    for i, page in enumerate(pdf.pages):
+                        text_layer = page.extract_text() or ""
+                        ocr_text = ocr_pdf_page(file_path, i)
+                        # So sánh độ dài, lấy cái nhiều ký tự hơn
+                        if len(text_layer.strip()) >= len(ocr_text.strip()):
+                            chosen_text = text_layer
+                        else:
+                            chosen_text = ocr_text
+                        if chosen_text and chosen_text.strip():
+                            full_text += chosen_text + "\n"
                     if full_text.strip():
                         documents.append(full_text)
             except Exception as e:
