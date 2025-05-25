@@ -1,2 +1,36 @@
+# Bỏ qua file cấu hình môi trường
 .env
+
+# Bỏ qua thư mục cache Python
 __pycache__/
+*.pyc
+
+# Bỏ qua checkpoint và dữ liệu train
+mistral-viquad-qlora/
+stanford_alpaca-main/checkpoints/
+chroma_store/
+*.sqlite3
+
+# Bỏ qua file mô hình lớn
+*.pt
+*.safetensors
+*.gguf
+
+# Nếu có thư mục models riêng
+models/
+
+# Bỏ qua file/dữ liệu OCR, PDF sinh ra
+docs/*.txt
+docs/*.out
+docs/*.log
+
+# Bỏ qua file log, tạm
+*.log
+*.tmp
+
+# Bỏ qua file notebook checkpoint
+*.ipynb_checkpoints/
+
+# Bỏ qua file hệ điều hành
+.DS_Store
+Thumbs.db
