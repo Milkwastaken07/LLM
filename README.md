@@ -1,4 +1,4 @@
-# Hướng dẫn cài đặt và chạy dự án LLM với Mistral
+# Hướng dẫn cài đặt, train và sử dụng dự án LLM với Mistral
 
 ## 1. Cài đặt các phần mềm phụ thuộc
 
@@ -13,30 +13,22 @@
 - **Thêm đường dẫn vào biến môi trường PATH:**  
   - Thêm thư mục cài đặt `Tesseract-OCR` và thư mục `bin` của Poppler vào biến môi trường `PATH` trên Windows.
 
-## 1.1. Cài đặt NVIDIA CUDA (nếu dùng GPU)
+## 2. Cài đặt NVIDIA CUDA (nếu dùng GPU)
 
 - **Driver NVIDIA:**  
-  Tải và cài đặt driver mới nhất cho card đồ họa tại:  
   https://www.nvidia.com/Download/index.aspx
 
-- **CUDA Toolkit:**  
-  Tải và cài đặt CUDA Toolkit (nên dùng bản >= 11.8):  
+- **CUDA Toolkit (>= 11.8):**  
   https://developer.nvidia.com/cuda-downloads
 
 - **Kiểm tra CUDA:**  
-  Sau khi cài đặt, kiểm tra bằng lệnh Python:
   ```python
   import torch
   print(torch.cuda.is_available())
   ```
   Nếu trả về `True` là đã cài thành công.
 
----
-
-**Lưu ý:**  
-- Nếu chỉ chạy trên CPU, bạn có thể bỏ qua bước này.
-- Nếu dùng Google Colab hoặc server cloud, các bước này thường đã được cài sẵn.
-## 2. Cài đặt thư viện Python
+## 3. Cài đặt thư viện Python
 
 - Cài đặt Python >= 3.10 (khuyến nghị dùng Anaconda hoặc Miniconda).
 - Cài đặt các thư viện cần thiết:
@@ -44,19 +36,80 @@
   pip install -r requirement.txt
   ```
 
-## 3. Chuẩn bị dữ liệu và mô hình
+## 4. Cấu trúc thư mục dự án
+
+```
+LLM/
+├── .env
+├── .gitignore
+├── chat.py
+├── loader.py
+├── main.py
+├── mistral-7b-instruct-v0.2.Q4_K_M.gguf
+├── README.md
+├── requirement.txt
+├── retriever.py
+├── test.py
+├── ui.py
+├── __pycache__/
+├── chroma_store/
+│   └── chroma.sqlite3
+├── docs/
+│   └── my_docs.pdf
+├── mistral-7b-viquad-merged/
+│   ├── config.json
+│   ├── model.safetensors
+│   └── ...
+├── mistral-viquad-qlora/
+│   └── ...
+├── stanford_alpaca-main/
+│   └── checkpoints/
+├── training/
+│   ├── finetune_mistral_qlora.py
+│   ├── load_viquad.py
+│   └── mergeModel.py
+```
+
+## 5. Chuẩn bị dữ liệu và mô hình
 
 - Đặt file PDF vào thư mục [`docs/`](docs/).
 - Tải model Mistral `.gguf` (ví dụ: [mistral-7b-instruct-v0.2.Q4_K_M.gguf](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)) và đặt vào thư mục dự án.
 
-## 4. Thiết lập biến môi trường
+## 6. Thiết lập biến môi trường
 
 - Tạo file `.env` với nội dung:
   ```
   MISTRAL_MODEL_PATH=mistral-7b-instruct-v0.2.Q4_K_M.gguf
   ```
+  Nếu đã merge model sau khi fine-tune, sửa lại thành:
+  ```
+  MISTRAL_MODEL_PATH=./mistral-7b-viquad-merged
+  ```
 
-## 5. Chạy dự án
+## 7. Hướng dẫn train (fine-tune) model
+
+1. **Chuẩn bị dữ liệu:**  
+   - Chạy script chuyển dữ liệu ViQuAD sang định dạng Alpaca:
+     ```sh
+     python training/load_viquad.py
+     ```
+   - File `viquad_alpaca.json` sẽ được tạo.
+
+2. **Fine-tune với QLoRA:**  
+   - Chạy script fine-tune:
+     ```sh
+     python training/finetune_mistral_qlora.py
+     ```
+   - Checkpoint sẽ lưu ở thư mục `mistral-viquad-qlora/`.
+
+3. **Merge adapter vào model gốc:**  
+   - Sau khi fine-tune xong, merge adapter LoRA vào model gốc:
+     ```sh
+     python training/mergeModel.py
+     ```
+   - Model đã merge sẽ nằm ở `mistral-7b-viquad-merged/`.
+
+## 8. Chạy dự án
 
 - **Chạy giao diện dòng lệnh:**
   ```sh
@@ -68,10 +121,10 @@
   python ui.py
   ```
 
-## 6. Ghi chú
+## 9. Ghi chú
 
-- Nếu muốn fine-tune model, xem file [`finetune_mistral_qlora.py`](finetune_mistral_qlora.py).
-- Đảm bảo đã cài đặt đầy đủ driver GPU (nếu sử dụng GPU để train/fine-tune).
-- Thư mục checkpoint và file model lớn đã được thêm vào `.gitignore`, không cần push lên GitHub.
+- Nếu chỉ muốn inference nhanh, chỉ cần file `.gguf` và cài `llama-cpp-python`.
+- Nếu muốn sử dụng model đã fine-tune, đảm bảo biến môi trường trỏ đúng thư mục model đã merge.
+- Không push file model lớn, checkpoint lên GitHub (đã có trong `.gitignore`).
 
 ---

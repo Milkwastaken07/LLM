@@ -1,2 +1,4 @@
-import torch
-print(torch.cuda.is_available())
+import os
+from dotenv import load_dotenv
+load_dotenv()
+print(os.getenv("MISTRAL_MODEL_PATH"))
