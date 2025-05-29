@@ -1,5 +1,7 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, filedialog, messagebox
+import shutil
+import os
 from loader import load_and_split_documents
 from retriever import build_retriever
 from chat import ask_question_with_retriever, ask_question_direct
@@ -35,6 +37,13 @@ class ChatUI:
         )
         self.send_button.pack(side=tk.RIGHT)
 
+        self.import_button = tk.Button(
+            master, text="Import PDF", font=("Segoe UI", 10, "bold"),
+            bg="#FF9800", fg="white", padx=10, pady=5,
+            command=self.import_pdf
+        )
+        self.import_button.pack(pady=(0, 5))
+
         self.mode_button = tk.Button(
             master, text="Chuyển chế độ: RAG", font=("Segoe UI", 10, "bold"),
             bg="#2196F3", fg="white", padx=10, pady=5,
@@ -45,6 +54,32 @@ class ChatUI:
         self.retriever = None
         self.is_rag_mode = True
         self.load_retriever()
+
+    def import_pdf(self):
+        file_path = filedialog.askopenfilename(
+            title="Chọn file PDF",
+            filetypes=[("PDF files", "*.pdf")]
+        )
+        if file_path:
+            dest_folder = "docs"
+            os.makedirs(dest_folder, exist_ok=True)
+            dest_path = os.path.join(dest_folder, os.path.basename(file_path))
+            try:
+                shutil.copy(file_path, dest_path)
+                messagebox.showinfo("Thành công", f"Đã import file vào {dest_path}")
+                self.append_message("🤖", f"Đã import file: {os.path.basename(file_path)}")
+                self.reload_retriever_only()
+            except Exception as e:
+                messagebox.showerror("Lỗi", f"Không thể import file: {e}")
+
+    def reload_retriever_only(self):
+        splits = load_and_split_documents("docs")
+        if splits:
+            self.retriever = build_retriever(splits)
+            self.append_message("🤖", "🔄 Đã cập nhật tài liệu cho RAG.")
+        else:
+            self.retriever = None
+            self.append_message("🤖", "⚠️ Không có tài liệu để sử dụng RAG.")
 
     def append_message(self, sender, message):
         self.chat_log.config(state='normal')
