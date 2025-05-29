@@ -96,13 +96,17 @@ LLM/
    - File `viquad_alpaca.json` sẽ được tạo.
 
 2. **Fine-tune với QLoRA:**  
+   - Thay đổi dữ liệu fine-tune bằng cách sửa dòng:
+     ```python
+     data_path = "viquad_alpaca.json"
+     ```
    - Chạy script fine-tune:
      ```sh
      python training/finetune_mistral_qlora.py
      ```
    - Checkpoint sẽ lưu ở thư mục `mistral-viquad-qlora/`.
 
-3. **Merge adapter vào model gốc:**  
+4. **Merge adapter vào model gốc:**  
    - Sau khi fine-tune xong, merge adapter LoRA vào model gốc:
      ```sh
      python training/mergeModel.py
